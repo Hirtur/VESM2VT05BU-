@@ -1,1 +1,121 @@
+// fek pinu hjalp fra daviði
 
+
+
+const int row[8] = {
+  17, 11, 19, 10, 13, 18, 12, 16
+};
+
+
+const int col[8] = {
+  6, 7, 5, 3, 2, 4, 8, 9
+};
+
+
+int pixels[8][8];
+
+
+int a = 5;
+int e = 5;
+
+int sidasta_blikk = false;
+int originalPixelValue;
+
+unsigned long last_input_time;
+
+void setup() {
+  for (int thisPin = 0; thisPin < 8; thisPin++) {
+    pinMode(col[thisPin], OUTPUT);
+    pinMode(row[thisPin], OUTPUT);
+    digitalWrite(col[thisPin], LOW);
+  }
+
+  // initialize the pixel matrix:
+  for (int a = 0; a < 8; a++) {
+    for (int e = 0; e < 8; e++) {
+      pixels[a][e] = LOW;
+    }
+  }
+  Serial.begin(9600);
+  pinMode(A0,INPUT);
+  pinMode(A1,INPUT);
+  last_input_time = millis();
+}
+
+void loop() {
+  if (millis() - last_input_time > 500) {
+    last_input_time = millis();
+
+    pixels[a][e] = originalPixelValue;
+
+
+    readSensors();
+
+
+    originalPixelValue = pixels[a][e];
+
+   
+    if (sidasta_blikk == false) {
+      Serial.print("CHANGING PIXEL TO HIGH\n");
+      pixels[a][e] = HIGH;
+      sidasta_blikk = true;
+    }
+    else if (sidasta_blikk == true) {
+      Serial.print("CHANGING PIXEL TO LOW\n");
+      pixels[a][e] = LOW;
+      sidasta_blikk = false;
+    }
+  }
+
+  refreshScreen();
+
+}
+
+void readSensors() {
+
+  if ((analogRead(A0) < 256) && a < 7) {
+    a += 1;
+  }
+  else if ((analogRead(A0) > 768) && a > 0) {
+    a -= 1;
+  }
+
+  if ((analogRead(A1) > 768) && e < 7) {
+    e += 1;
+  }
+  else if ((analogRead(A1) < 256) && e > 0) {
+    e -= 1;
+  }
+
+  if (digitalRead(0) == false) {
+    if (pixels[a][e] == LOW) {
+      pixels[a][e] = HIGH;
+    }
+    else if (pixels[a][e] == HIGH) {
+      pixels[a][e] = LOW;
+    }
+  }
+
+
+
+  Serial.print(analogRead(A1));
+  Serial.print("\n");
+  Serial.print(analogRead(A0));
+  Serial.print("\n");
+
+}
+
+void refreshScreen() {
+
+  for (int thisRow = 0; thisRow < 8; thisRow++) {
+    digitalWrite(row[thisRow], LOW);
+    for (int thisCol = 0; thisCol < 8; thisCol++) {
+      int thisPixel = pixels[thisRow][thisCol];
+      digitalWrite(col[thisCol], thisPixel);
+      if (thisPixel == HIGH) {
+        digitalWrite(col[thisCol], LOW);
+      }
+    }
+    digitalWrite(row[thisRow], HIGH);
+  }
+}
